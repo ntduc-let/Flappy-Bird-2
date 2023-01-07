@@ -4,7 +4,6 @@ import android.graphics.*
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.View
@@ -26,8 +25,21 @@ import com.ntduc.flappybird.model.CoinMatch
 import com.ntduc.flappybird.model.ScoreMatch
 import com.ntduc.flappybird.model.TubeMatch
 import com.ntduc.flappybird.repository.Repository
+import com.ntduc.flappybird.repository.Repository.DISTANCE_EASY
+import com.ntduc.flappybird.repository.Repository.DISTANCE_HARD
+import com.ntduc.flappybird.repository.Repository.DISTANCE_MEDIUM
+import com.ntduc.flappybird.repository.Repository.GAP_EASY
+import com.ntduc.flappybird.repository.Repository.GAP_HARD
+import com.ntduc.flappybird.repository.Repository.GAP_MEDIUM
+import com.ntduc.flappybird.repository.Repository.LEVEL_EASY
+import com.ntduc.flappybird.repository.Repository.LEVEL_HARD
+import com.ntduc.flappybird.repository.Repository.LEVEL_MEDIUM
+import com.ntduc.flappybird.repository.Repository.LEVEL_VERY_HARD
+import com.ntduc.flappybird.repository.Repository.STATE_GAME_NOT_STARTED
+import com.ntduc.flappybird.repository.Repository.STATE_GAME_OVER
+import com.ntduc.flappybird.repository.Repository.STATE_GAME_PAUSED
+import com.ntduc.flappybird.repository.Repository.STATE_GAME_PLAYING
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -203,26 +215,6 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         }
         tube!!.minTubeOffset = tube!!.gap / 2
         tube!!.maxTubeOffset = mDisplayHeight - tube!!.minTubeOffset - tube!!.gap
-    }
-
-    companion object {
-        private const val STATE_GAME_NOT_STARTED = 0
-        private const val STATE_GAME_PLAYING = 1
-        private const val STATE_GAME_PAUSED = 2
-        private const val STATE_GAME_OVER = 3
-
-        const val LEVEL_EASY = 0
-        const val LEVEL_MEDIUM = 1
-        const val LEVEL_HARD = 2
-        const val LEVEL_VERY_HARD = 3
-
-        private const val GAP_EASY = 600
-        private const val GAP_MEDIUM = 500
-        private const val GAP_HARD = 400
-
-        private const val DISTANCE_EASY = 300
-        private const val DISTANCE_MEDIUM = 100
-        private const val DISTANCE_HARD = 0
     }
 
     private var gameState: Int = STATE_GAME_NOT_STARTED

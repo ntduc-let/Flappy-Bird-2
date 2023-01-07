@@ -65,4 +65,18 @@
             android:layout_weight="1" />
     </LinearLayout>
 
+    <Button
+        android:id="@+id/start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Vào trận (sau 5s)"
+        app:layout_constraintTop_toBottomOf="@id/ll_rival" />
+
+    <Button
+        android:id="@+id/back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Rời trận"
+        app:layout_constraintTop_toBottomOf="@id/start" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

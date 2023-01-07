@@ -143,15 +143,16 @@ class ScanQRActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
                 if (userDB != null && userDB.match.isCreated && !userDB.match.isConnected && userDB.match.rival == null) {
                     userDB.match.isCreated = false
                     userDB.match.isConnected = true
-                    userDB.match.rival = Rival(info = Repository.user!!.info, bird = Repository.user!!.bird, coin = Repository.user!!.coin)
-                    Repository.rival = Rival(info = userDB.info, bird = userDB.bird, coin = userDB.coin)
+                    userDB.match.rival = Repository.user
+                    Repository.rival = userDB
+                    Repository.isHost = false
                     rf!!.setValue(userDB)
 
-                    startActivity(Intent(this@ScanQRActivity, SinglePlayerActivity::class.java))
+                    startActivity(Intent(this@ScanQRActivity, PrepareActivity::class.java))
                     finish()
-                }else{
+                } else if (userDB == null) {
                     startScan()
-                    shortToast("Mã QR không hợp lệ")
+                    shortToast("Mã QR không hợp lệ 1")
                 }
             }
 

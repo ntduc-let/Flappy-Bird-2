@@ -57,12 +57,12 @@ class QRActivity : AppCompatActivity() {
         if (valueEventListener != null && rf != null) {
             rf!!.removeEventListener(valueEventListener!!)
         }
-        GlobalScope.launch(Dispatchers.IO){
-            if (Repository.user!!.match.isCreated){
-                Repository.user!!.match.isCreated = false
-                rf!!.setValue(Repository.user)
-            }
-        }
+    }
+
+    override fun onBackPressed() {
+        Repository.user!!.match.isCreated = false
+        rf!!.setValue(Repository.user)
+        super.onBackPressed()
     }
 
     private fun init() {
@@ -81,7 +81,9 @@ class QRActivity : AppCompatActivity() {
 
                 if (userDB != null && !userDB.match.isCreated && userDB.match.isConnected && userDB.match.rival != null) {
                     Repository.user = userDB
-                    startActivity(Intent(this@QRActivity, SinglePlayerActivity::class.java))
+                    Repository.rival = userDB.match.rival
+                    Repository.isHost = true
+                    startActivity(Intent(this@QRActivity, PrepareActivity::class.java))
                     finish()
                 }
             }

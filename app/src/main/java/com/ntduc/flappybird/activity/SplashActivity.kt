@@ -108,6 +108,10 @@ class SplashActivity : AppCompatActivity() {
 
                 if (userDB != null) {
                     Repository.user = userDB
+
+                    dialog.cancel()
+                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    finish()
                 } else {
                     val info = Info(
                         uid = user.uid,
@@ -120,10 +124,6 @@ class SplashActivity : AppCompatActivity() {
                     Repository.user = User(info = info, bird = bird)
                     rf!!.setValue(Repository.user)
                 }
-
-                dialog.cancel()
-                startActivity(Intent(this@SplashActivity, MainActivity::class.java))
-                finish()
             }
 
             override fun onCancelled(error: DatabaseError) {
