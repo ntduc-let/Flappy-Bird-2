@@ -1,8 +1,8 @@
 package com.ntduc.flappybird.activity
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -29,12 +29,25 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val auth = FirebaseAuth.getInstance()
-        if (auth.currentUser == null) {
+        if (auth.currentUser == null || Repository.user == null) {
             restartApp()
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        val list = Repository.getListBird()
+        list.indices.forEach {
+            if (list[it] == Repository.user!!.bird) {
+                binding.vpChooseBird.currentItem = it
+            }
+        }
+    }
+
     private fun init() {
+        if (Repository.user == null) return
+
         initView()
         initEvent()
     }
@@ -42,14 +55,19 @@ class MainActivity : AppCompatActivity() {
     private fun initEvent() {
         binding.start.setOnClickShrinkEffectListener {
             App.getInstance().startEffect()
+            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem]
+            startActivity(Intent(this, SinglePlayerActivity::class.java))
         }
 
         binding.compete.setOnClickShrinkEffectListener {
             App.getInstance().startEffect()
+            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem]
+
         }
 
         binding.map.setOnClickShrinkEffectListener {
             App.getInstance().startEffect()
+            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem]
         }
 
         binding.setting.setOnClickShrinkEffectListener {
@@ -60,13 +78,6 @@ class MainActivity : AppCompatActivity() {
     private fun initView() {
         binding.vpChooseBird.adapter = ChooseBirdsAdapter(this, Repository.getListBird())
         binding.vpChooseBird.setPageTransformer(BackgroundToForegroundTransformer())
-
-        val list = Repository.getListBird()
-        list.indices.forEach {
-            if (list[it] == Repository.user!!.bird) {
-                binding.vpChooseBird.currentItem = it
-            }
-        }
 
         val recyclerView = binding.vpChooseBird.getChildAt(0) as RecyclerView
         val layoutManager = recyclerView.layoutManager as LinearLayoutManager
