@@ -149,10 +149,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         mDisplayHeight = displayHeight + heightNavigationBar
         mRect = Rect(0, 0, mDisplayWidth, mDisplayHeight)
 
-        mBirds = listOf(
-            BitmapFactory.decodeResource(resources, R.drawable.birda),
-            BitmapFactory.decodeResource(resources, R.drawable.birdb)
-        )
+        mBirds = BitmapFactory.decodeResource(resources, Repository.user!!.bird.res2)
 
         resetData()
     }
@@ -167,8 +164,8 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         score!!.scoringCoin = true
 
         bird = BirdMatch()
-        bird!!.birdX = (mDisplayWidth - mBirds[0].width).toFloat() / 2
-        bird!!.birdY = (mDisplayHeight - mBirds[0].height).toFloat() / 2
+        bird!!.birdX = (mDisplayWidth - mBirds!!.width).toFloat() / 2
+        bird!!.birdY = (mDisplayHeight - mBirds!!.height).toFloat() / 2
 
         tube = TubeMatch()
         tube!!.distanceBetweenTubes = mDisplayWidth * 3 / 4
@@ -232,8 +229,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
     private var random: Random = Random()
 
     private var bird: BirdMatch? = null
-    private var mBirds: List<Bitmap> = listOf()     //List bitmap for bird
-    private var birdFrame: Int = 0                  //Theo dõi trạng thái của bird
+    private var mBirds: Bitmap? = null
 
     private var tube: TubeMatch? = null
     private var mTopTube: Bitmap? = null
@@ -396,8 +392,8 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
 
     private fun isBirdHitTube(): Boolean {
         for (i in 0 until numberOfTubes) {
-            if (bird!!.birdX.toInt() + mBirds[0].width >= tube!!.tubeX[i]
-                && (bird!!.birdY.toInt() <= tube!!.topTubeY[i] || bird!!.birdY.toInt() + mBirds[0].height >= tube!!.topTubeY[i] + tube!!.gap)
+            if (bird!!.birdX.toInt() + mBirds!!.width >= tube!!.tubeX[i]
+                && (bird!!.birdY.toInt() <= tube!!.topTubeY[i] || bird!!.birdY.toInt() + mBirds!!.height >= tube!!.topTubeY[i] + tube!!.gap)
                 && bird!!.birdX.toInt() <= tube!!.tubeX[i] + mTopTube!!.width
             ) return true
         }
@@ -406,8 +402,8 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
 
     private fun isBirdHitCoin(): Boolean {
         for (i in 0 until numberOfTubes) {
-            if (bird!!.birdX.toInt() + mBirds[0].width >= coin!!.coinX[i]
-                && (bird!!.birdY.toInt() + mBirds[0].height >= coin!!.coinY[i] && bird!!.birdY.toInt() <= coin!!.coinY[i] + mCoin!!.height)
+            if (bird!!.birdX.toInt() + mBirds!!.width >= coin!!.coinX[i]
+                && (bird!!.birdY.toInt() + mBirds!!.height >= coin!!.coinY[i] && bird!!.birdY.toInt() <= coin!!.coinY[i] + mCoin!!.height)
                 && bird!!.birdX.toInt() <= coin!!.coinX[i] + mCoin!!.width
             ) {
                 coin!!.coinShowing[i] = false
@@ -488,7 +484,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
     }
 
     private suspend fun updateBird(canvas: Canvas) {
-        if (bird!!.birdY < mDisplayHeight - mBirds[0].height || bird!!.velocity < 0) {     //Xét bird không rơi khỏi màn hình
+        if (bird!!.birdY < mDisplayHeight - mBirds!!.height || bird!!.velocity < 0) {     //Xét bird không rơi khỏi màn hình
             //Xét bird đang rơi, càng rơi càng nhanh
             bird!!.velocity += bird!!.gravity
 
@@ -536,15 +532,9 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         }
     }
 
-    private val delay = 100L
-    private var current = System.currentTimeMillis()
     private suspend fun drawBird(canvas: Canvas) {
-        if (System.currentTimeMillis() - current >= delay) {
-            current = System.currentTimeMillis()
-            birdFrame = if (birdFrame == 0) 1 else 0
-        }
         withContext(Dispatchers.Main) {
-            canvas.drawBitmap(mBirds[birdFrame], bird!!.birdX, bird!!.birdY, null)
+            canvas.drawBitmap(mBirds!!, bird!!.birdX, bird!!.birdY, null)
         }
     }
 

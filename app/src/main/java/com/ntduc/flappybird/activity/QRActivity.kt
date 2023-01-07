@@ -1,10 +1,15 @@
 package com.ntduc.flappybird.activity
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -17,6 +22,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
+import com.ntduc.clickeffectutils.setOnClickShrinkEffectListener
 import com.ntduc.contextutils.displayWidth
 import com.ntduc.contextutils.inflater
 import com.ntduc.contextutils.restartApp
@@ -24,6 +30,8 @@ import com.ntduc.flappybird.databinding.ActivityQrBinding
 import com.ntduc.flappybird.model.Info
 import com.ntduc.flappybird.model.User
 import com.ntduc.flappybird.repository.Repository
+import com.ntduc.flappybird.utils.PermissionUtil
+import com.ntduc.toastutils.shortToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -91,6 +99,14 @@ class QRActivity : AppCompatActivity() {
             override fun onCancelled(error: DatabaseError) {}
         }
         rf!!.addValueEventListener(valueEventListener!!)
+
+        binding.scan.setOnClickShrinkEffectListener {
+            if (PermissionUtil.checkPermissionCamera(this)) {
+                startActivity(Intent(this, ScanQRActivity::class.java))
+            } else {
+                requestCameraPermission()
+            }
+        }
     }
 
     private fun initData() {
@@ -126,4 +142,58 @@ class QRActivity : AppCompatActivity() {
         return Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888)
     }
 
+    private fun requestCameraPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(
+                Manifest.permission.CAMERA
+            ),
+            REQ_CAMERA_CODE
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_CAMERA_CODE) {
+            for (permission in permissions) {
+                if (permission == Manifest.permission.CAMERA) {
+                    if (ActivityCompat.checkSelfPermission(
+                            this,
+                            permission
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                            requestCameraPermission()
+                        } else {
+                            shortToast("Vui lòng cấp quyền camera đi bạn")
+                            goSetting()
+                        }
+                    } else {
+                        startActivity(Intent(this, ScanQRActivity::class.java))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun goSetting() {
+        val intent = Intent()
+        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+        intent.addCategory(Intent.CATEGORY_DEFAULT)
+        intent.data = Uri.parse("package:" + this.packageName)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_USER_ACTION)
+        intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+        startActivity(intent)
+    }
+
+    companion object {
+        private const val REQ_CAMERA_CODE = 4097
+    }
 }

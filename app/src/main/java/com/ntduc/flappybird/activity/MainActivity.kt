@@ -3,17 +3,25 @@ package com.ntduc.flappybird.activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import com.ntduc.activityutils.setStatusBarColor
 import com.ntduc.clickeffectutils.setOnClickShrinkEffectListener
 import com.ntduc.contextutils.inflater
 import com.ntduc.contextutils.restartApp
 import com.ntduc.flappybird.App
+import com.ntduc.flappybird.R
 import com.ntduc.flappybird.adapter.ChooseBirdsAdapter
 import com.ntduc.flappybird.databinding.ActivityMainBinding
 import com.ntduc.flappybird.repository.Repository
 import com.ntduc.viewpager2utils.BackgroundToForegroundTransformer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -34,20 +42,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        val list = Repository.getListBird()
-        list.indices.forEach {
-            if (list[it] == Repository.user!!.bird) {
-                binding.vpChooseBird.currentItem = it
-            }
-        }
-    }
-
     private fun init() {
-        if (Repository.user == null) return
-
         initView()
         initEvent()
     }
@@ -55,19 +50,26 @@ class MainActivity : AppCompatActivity() {
     private fun initEvent() {
         binding.start.setOnClickShrinkEffectListener {
             App.getInstance().startEffect()
-            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem]
+            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem - 1]
             startActivity(Intent(this, SinglePlayerActivity::class.java))
         }
 
         binding.compete.setOnClickShrinkEffectListener {
             App.getInstance().startEffect()
-            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem]
-            startActivity(Intent(this, CompeteActivity::class.java))
+            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem - 1]
+            Repository.user!!.match.isCreated = true
+
+            GlobalScope.launch(Dispatchers.IO) {
+                Firebase.database.getReference(Repository.user!!.info!!.uid)
+                    .setValue(Repository.user)
+            }
+
+            startActivity(Intent(this, QRActivity::class.java))
         }
 
         binding.map.setOnClickShrinkEffectListener {
             App.getInstance().startEffect()
-            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem]
+            Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem - 1]
         }
 
         binding.setting.setOnClickShrinkEffectListener {
@@ -76,8 +78,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initView() {
+        setStatusBarColor(R.color.main)
         binding.vpChooseBird.adapter = ChooseBirdsAdapter(this, Repository.getListBird())
         binding.vpChooseBird.setPageTransformer(BackgroundToForegroundTransformer())
+        binding.vpChooseBird.clipToPadding = false
+        binding.vpChooseBird.clipChildren = false
+        binding.vpChooseBird.offscreenPageLimit = 3
+        binding.vpChooseBird.currentItem = 1
 
         val recyclerView = binding.vpChooseBird.getChildAt(0) as RecyclerView
         val layoutManager = recyclerView.layoutManager as LinearLayoutManager

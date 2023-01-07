@@ -14,7 +14,7 @@ class ChooseBirdsAdapter(
     private var listOriginal = arrayListOf<Bird>()
 
     init {
-        if (list.isNotEmpty()){
+        if (list.isNotEmpty()) {
             listOriginal.add(list.last())
             listOriginal.addAll(list)
             listOriginal.add(list.first())
@@ -39,6 +39,7 @@ class ChooseBirdsAdapter(
         val item = listOriginal[position]
 
         holder.binding.img.setImageResource(item.src)
+        holder.binding.name.text = item.name
     }
 
     override fun getItemCount(): Int = listOriginal.size

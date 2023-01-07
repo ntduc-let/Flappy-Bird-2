@@ -9,18 +9,25 @@ import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.*
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import com.ntduc.activityutils.setStatusBarColor
 import com.ntduc.clickeffectutils.setOnClickShrinkEffectListener
 import com.ntduc.contextutils.inflater
 import com.ntduc.flappybird.App
+import com.ntduc.flappybird.R
+import com.ntduc.flappybird.adapter.FragmentSplashAdapter
 import com.ntduc.flappybird.databinding.ActivitySplashBinding
 import com.ntduc.flappybird.dialog.DialogLoginLoading
 import com.ntduc.flappybird.model.Info
 import com.ntduc.flappybird.model.User
 import com.ntduc.flappybird.repository.Repository
+import com.ntduc.viewpager2utils.*
 
 
 @SuppressLint("CustomSplashScreen")
@@ -78,7 +85,9 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun initView() {
-
+        setStatusBarColor(R.color.main)
+        binding.vp.adapter = FragmentSplashAdapter(this)
+        binding.vp.setPageTransformer(DepthPageTransformer())
     }
 
     private fun initData() {

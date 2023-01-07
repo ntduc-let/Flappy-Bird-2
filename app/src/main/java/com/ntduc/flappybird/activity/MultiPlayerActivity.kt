@@ -1,5 +1,6 @@
 package com.ntduc.flappybird.activity
 
+import android.content.Intent
 import android.graphics.*
 import android.media.MediaPlayer
 import android.net.Uri
@@ -11,7 +12,12 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
+import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import com.ntduc.activityutils.enterFullScreenMode
 import com.ntduc.contextutils.displayHeight
@@ -22,10 +28,7 @@ import com.ntduc.flappybird.App
 import com.ntduc.flappybird.R
 import com.ntduc.flappybird.databinding.ActivityMultiPlayerBinding
 import com.ntduc.flappybird.databinding.ActivitySinglePlayerBinding
-import com.ntduc.flappybird.model.BirdMatch
-import com.ntduc.flappybird.model.CoinMatch
-import com.ntduc.flappybird.model.ScoreMatch
-import com.ntduc.flappybird.model.TubeMatch
+import com.ntduc.flappybird.model.*
 import com.ntduc.flappybird.repository.Repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -37,6 +40,9 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
     private lateinit var binding: ActivityMultiPlayerBinding
     private lateinit var surfaceHolder: SurfaceHolder
     private lateinit var auth: FirebaseAuth
+
+    private var valueEventListener: ValueEventListener? = null
+    private var rf: DatabaseReference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +65,13 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
         finish()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if (valueEventListener != null && rf != null) {
+            rf!!.removeEventListener(valueEventListener!!)
+        }
+    }
+
     override fun onBackPressed() {}
 
     private fun init() {
@@ -70,6 +83,32 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
     }
 
     private fun initEvent() {
+        rf = if (Repository.isHost) {
+            Firebase.database.getReference(Repository.user!!.info!!.uid)
+        } else {
+            Firebase.database.getReference(Repository.rival!!.info!!.uid)
+        }
+
+//        valueEventListener = object :
+//            ValueEventListener {
+//            override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+//                val userDB = dataSnapshot.getValue<User>()
+//
+//                if (userDB != null && userDB.match.isPlaying) {
+//                    startActivity(Intent(this@PrepareActivity, MultiPlayerActivity::class.java))
+//                    finish()
+//                } else if (userDB != null && (!userDB.match.isConnected || userDB.match.rival == null)) {
+//                    finish()
+//                }
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {}
+//        }
+//        rf!!.addValueEventListener(valueEventListener!!)
+
+
         binding.surfaceView.setOnTouchListener(this)
         binding.scoreboard.exit.setOnClickListener {
             finish()

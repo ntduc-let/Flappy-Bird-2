@@ -148,6 +148,10 @@ class ScanQRActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
                     Repository.isHost = false
                     rf!!.setValue(userDB)
 
+                    Repository.user!!.match.isCreated = false
+                    Firebase.database.getReference(Repository.user!!.info!!.uid)
+                        .setValue(Repository.user)
+
                     startActivity(Intent(this@ScanQRActivity, PrepareActivity::class.java))
                     finish()
                 } else if (userDB == null) {

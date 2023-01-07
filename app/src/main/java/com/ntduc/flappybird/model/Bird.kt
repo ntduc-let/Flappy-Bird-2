@@ -1,6 +1,7 @@
 package com.ntduc.flappybird.model
 
 import android.os.Parcelable
+import androidx.annotation.IdRes
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize

@@ -8,15 +8,26 @@
     tools:context=".activity.QRActivity">
 
     <TextView
+        android:id="@+id/txt1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         android:gravity="center"
         android:text="Quét QR để tìm đối thủ"
         android:textColor="@color/white"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/bg_qr_code"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.7" />
+        android:textSize="40dp"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txt2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="QR của tôi"
+        android:textColor="@color/white"
+        android:textSize="40dp"
+        app:layout_constraintTop_toBottomOf="@id/txt1" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/bg_qr_code"
@@ -25,11 +36,10 @@
         android:adjustViewBounds="true"
         android:scaleType="centerCrop"
         android:src="@drawable/bg_qr_code"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/txt2" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/qr"
@@ -42,4 +52,27 @@
         app:layout_constraintStart_toStartOf="@id/bg_qr_code"
         app:layout_constraintTop_toTopOf="@id/bg_qr_code" />
 
+    <TextView
+        android:id="@+id/txt3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="QR của đối thủ"
+        android:textColor="@color/white"
+        android:textSize="40dp"
+        app:layout_constraintTop_toBottomOf="@id/bg_qr_code" />
+
+    <Button
+        android:id="@+id/scan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_button"
+        android:text="Quét"
+        android:textAllCaps="false"
+        android:textColor="@color/black"
+        android:textSize="32dp"
+        app:backgroundTint="@null"
+        app:layout_constraintTop_toBottomOf="@id/txt3" />
 </androidx.constraintlayout.widget.ConstraintLayout>

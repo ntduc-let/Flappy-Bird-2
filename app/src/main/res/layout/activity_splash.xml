@@ -4,13 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/main"
     tools:context="com.ntduc.flappybird.activity.SplashActivity">
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/vp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@id/started"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/started"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Get Started"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/bg_button"
+        android:text="Bắt Đầu"
+        android:textAllCaps="false"
+        android:textColor="@color/black"
+        android:textSize="32dp"
+        app:backgroundTint="@null"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
