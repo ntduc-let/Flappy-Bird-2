@@ -2,11 +2,13 @@ package com.ntduc.flappybird.repository
 
 import com.ntduc.flappybird.R
 import com.ntduc.flappybird.model.Bird
+import com.ntduc.flappybird.model.Rival
 import com.ntduc.flappybird.model.User
 
 object Repository {
     private val listBird = arrayListOf<Bird>()
     var user: User? = null
+    var rival: Rival? = null
 
     fun getListBird(): ArrayList<Bird> {
         if (listBird.isEmpty()){

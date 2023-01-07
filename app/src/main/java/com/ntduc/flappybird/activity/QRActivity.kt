@@ -1,11 +1,18 @@
 package com.ntduc.flappybird.activity
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
+import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -14,6 +21,8 @@ import com.ntduc.contextutils.displayWidth
 import com.ntduc.contextutils.inflater
 import com.ntduc.contextutils.restartApp
 import com.ntduc.flappybird.databinding.ActivityQrBinding
+import com.ntduc.flappybird.model.Info
+import com.ntduc.flappybird.model.User
 import com.ntduc.flappybird.repository.Repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -23,6 +32,9 @@ import java.util.*
 
 class QRActivity : AppCompatActivity() {
     private lateinit var binding: ActivityQrBinding
+
+    private var valueEventListener: ValueEventListener? = null
+    private var rf: DatabaseReference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,14 +52,17 @@ class QRActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        GlobalScope.launch(Dispatchers.IO){
-            Repository.user!!.match.isCreated = false
-            Firebase.database.getReference(Repository.user!!.info!!.uid)
-                .setValue(Repository.user)
+    override fun onDestroy() {
+        super.onDestroy()
+        if (valueEventListener != null && rf != null) {
+            rf!!.removeEventListener(valueEventListener!!)
         }
-
-        super.onBackPressed()
+        GlobalScope.launch(Dispatchers.IO){
+            if (Repository.user!!.match.isCreated){
+                Repository.user!!.match.isCreated = false
+                rf!!.setValue(Repository.user)
+            }
+        }
     }
 
     private fun init() {
@@ -56,7 +71,24 @@ class QRActivity : AppCompatActivity() {
     }
 
     private fun initEvent() {
-//        TODO("Not yet implemented")
+        rf = Firebase.database.getReference(Repository.user!!.info!!.uid)
+        valueEventListener = object :
+            ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                val userDB = dataSnapshot.getValue<User>()
+
+                if (userDB != null && !userDB.match.isCreated && userDB.match.isConnected && userDB.match.rival != null) {
+                    Repository.user = userDB
+                    startActivity(Intent(this@QRActivity, SinglePlayerActivity::class.java))
+                    finish()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        }
+        rf!!.addValueEventListener(valueEventListener!!)
     }
 
     private fun initData() {

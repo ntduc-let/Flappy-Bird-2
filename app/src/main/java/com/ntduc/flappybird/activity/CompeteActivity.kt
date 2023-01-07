@@ -44,17 +44,6 @@ class CompeteActivity : AppCompatActivity() {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        Log.d("ntduc_debug", "onStop: ")
-    }
-
-    override fun onDestroy() {
-        Log.d("ntduc_debug", "onDestroy: ")
-
-        super.onDestroy()
-    }
-
     private fun init() {
         initEvent()
     }

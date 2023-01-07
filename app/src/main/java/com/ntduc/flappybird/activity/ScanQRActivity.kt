@@ -2,17 +2,27 @@ package com.ntduc.flappybird.activity
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.*
 import android.text.TextUtils
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.database.ktx.getValue
+import com.google.firebase.ktx.Firebase
 import com.google.zxing.Result
 import com.ntduc.contextutils.inflater
 import com.ntduc.contextutils.restartApp
 import com.ntduc.flappybird.customview.CustomViewFinderView
 import com.ntduc.flappybird.databinding.ActivityScanQrBinding
+import com.ntduc.flappybird.model.Rival
+import com.ntduc.flappybird.model.User
 import com.ntduc.flappybird.repository.Repository
 import com.ntduc.toastutils.shortToast
 import me.dm7.barcodescanner.core.IViewFinder
@@ -22,6 +32,9 @@ class ScanQRActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
 
     private lateinit var binding: ActivityScanQrBinding
     private var scannerView: ZXingScannerView? = null
+
+    private var valueEventListener: ValueEventListener? = null
+    private var rf: DatabaseReference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +67,13 @@ class ScanQRActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
     override fun onPause() {
         super.onPause()
         stopScan()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (valueEventListener != null && rf != null) {
+            rf!!.removeEventListener(valueEventListener!!)
+        }
     }
 
     private fun init() {
@@ -112,7 +132,32 @@ class ScanQRActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
     }
 
     private fun connectToMatch(id: String) {
-        Log.d("ntduc_debug", "connectToMatch: $id")
+        rf = Firebase.database.getReference(id)
+        valueEventListener = object :
+            ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                val userDB = dataSnapshot.getValue<User>()
+
+                if (userDB != null && userDB.match.isCreated && !userDB.match.isConnected && userDB.match.rival == null) {
+                    userDB.match.isCreated = false
+                    userDB.match.isConnected = true
+                    userDB.match.rival = Rival(info = Repository.user!!.info, bird = Repository.user!!.bird, coin = Repository.user!!.coin)
+                    Repository.rival = Rival(info = userDB.info, bird = userDB.bird, coin = userDB.coin)
+                    rf!!.setValue(userDB)
+
+                    startActivity(Intent(this@ScanQRActivity, SinglePlayerActivity::class.java))
+                    finish()
+                }else{
+                    startScan()
+                    shortToast("Mã QR không hợp lệ")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        }
+        rf!!.addValueEventListener(valueEventListener!!)
     }
 
     private fun availableCameraPms(): Boolean {
