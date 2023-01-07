@@ -6,6 +6,7 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class Match(
     var isCreated: Boolean = false,
+    var isConnected: Boolean = false,
     var isPlaying: Boolean = false,
     var coin: Int = 0,
     var statusGame: Int = 0,

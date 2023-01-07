@@ -2,16 +2,14 @@ package com.ntduc.flappybird.activity
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
@@ -24,10 +22,14 @@ import com.ntduc.flappybird.model.Info
 import com.ntduc.flappybird.model.User
 import com.ntduc.flappybird.repository.Repository
 
+
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplashBinding
     private lateinit var auth: FirebaseAuth
+
+    private var valueEventListener: ValueEventListener? = null
+    private var rf: DatabaseReference? = null
 
     private val signInLauncher = registerForActivityResult(
         FirebaseAuthUIActivityResultContract()
@@ -41,6 +43,13 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         init()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (valueEventListener != null && rf != null) {
+            rf!!.removeEventListener(valueEventListener!!)
+        }
     }
 
     private fun init() {
@@ -89,8 +98,8 @@ class SplashActivity : AppCompatActivity() {
         val dialog = DialogLoginLoading(this)
         dialog.show()
 
-        val rf = Firebase.database.getReference(user.uid)
-        rf.addValueEventListener(object :
+        rf = Firebase.database.getReference(user.uid)
+        valueEventListener = object :
             ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // This method is called once with the initial value and again
@@ -109,7 +118,7 @@ class SplashActivity : AppCompatActivity() {
                     )
                     val bird = Repository.getListBird()[0]
                     Repository.user = User(info = info, bird = bird)
-                    rf.setValue(Repository.user)
+                    rf!!.setValue(Repository.user)
                 }
 
                 dialog.cancel()
@@ -120,6 +129,7 @@ class SplashActivity : AppCompatActivity() {
             override fun onCancelled(error: DatabaseError) {
                 dialog.cancel()
             }
-        })
+        }
+        rf!!.addValueEventListener(valueEventListener!!)
     }
 }

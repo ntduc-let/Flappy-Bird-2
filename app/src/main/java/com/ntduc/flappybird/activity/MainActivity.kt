@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         binding.compete.setOnClickShrinkEffectListener {
             App.getInstance().startEffect()
             Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem]
-
+            startActivity(Intent(this, CompeteActivity::class.java))
         }
 
         binding.map.setOnClickShrinkEffectListener {

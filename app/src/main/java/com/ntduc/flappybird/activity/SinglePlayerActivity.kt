@@ -4,6 +4,7 @@ import android.graphics.*
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.View
@@ -26,6 +27,7 @@ import com.ntduc.flappybird.model.ScoreMatch
 import com.ntduc.flappybird.model.TubeMatch
 import com.ntduc.flappybird.repository.Repository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -69,13 +71,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
     private fun initEvent() {
         binding.surfaceView.setOnTouchListener(this)
         binding.scoreboard.exit.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.IO) {
-                Firebase.database.getReference(Repository.user!!.info!!.uid)
-                    .setValue(Repository.user)
-                withContext(Dispatchers.Main){
-                    finish()
-                }
-            }
+            finish()
         }
         binding.scoreboard.playAgain.setOnClickListener {
             resetData()
@@ -395,6 +391,11 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
 
             if (Repository.user!!.level.bestCoin < score!!.score) {
                 Repository.user!!.level.bestCoin = score!!.score
+            }
+
+            withContext(Dispatchers.IO){
+                Firebase.database.getReference(Repository.user!!.info!!.uid)
+                    .setValue(Repository.user)
             }
 
             binding.scoreboard.best.text = "${Repository.user!!.level.bestCoin}"
