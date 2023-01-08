@@ -10,20 +10,15 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.ntduc.activityutils.enterFullScreenMode
+import com.ntduc.clickeffectutils.setOnClickShrinkEffectListener
 import com.ntduc.contextutils.displayHeight
 import com.ntduc.contextutils.displayWidth
 import com.ntduc.contextutils.inflater
 import com.ntduc.contextutils.restartApp
-import com.ntduc.flappybird.App
 import com.ntduc.flappybird.R
 import com.ntduc.flappybird.databinding.ActivitySinglePlayerBinding
-import com.ntduc.flappybird.model.BirdMatch
-import com.ntduc.flappybird.model.CoinMatch
-import com.ntduc.flappybird.model.ScoreMatch
-import com.ntduc.flappybird.model.TubeMatch
+import com.ntduc.flappybird.model.*
 import com.ntduc.flappybird.repository.Repository
 import com.ntduc.flappybird.repository.Repository.DISTANCE_EASY
 import com.ntduc.flappybird.repository.Repository.DISTANCE_HARD
@@ -39,6 +34,7 @@ import com.ntduc.flappybird.repository.Repository.STATE_GAME_NOT_STARTED
 import com.ntduc.flappybird.repository.Repository.STATE_GAME_OVER
 import com.ntduc.flappybird.repository.Repository.STATE_GAME_PAUSED
 import com.ntduc.flappybird.repository.Repository.STATE_GAME_PLAYING
+import com.ntduc.flappybird.repository.Repository.STATE_GAME_WIN
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,6 +66,11 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         finish()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        cancelMediaPlaying()
+    }
+
     override fun onBackPressed() {}
 
     private fun init() {
@@ -82,16 +83,23 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
 
     private fun initEvent() {
         binding.surfaceView.setOnTouchListener(this)
-        binding.scoreboard.exit.setOnClickListener {
+        binding.scoreboard.home.setOnClickShrinkEffectListener {
             finish()
         }
-        binding.scoreboard.playAgain.setOnClickListener {
+        binding.scoreboard.playAgain.setOnClickShrinkEffectListener {
             resetData()
         }
-        binding.paused.resume.setOnClickListener {
+        binding.scoreboardWin.home.setOnClickShrinkEffectListener{
+            finish()
+        }
+        binding.scoreboardWin.next.setOnClickShrinkEffectListener{
+            level++
+            resetData()
+        }
+        binding.paused.resume.setOnClickShrinkEffectListener {
 
         }
-        binding.paused.exit.setOnClickListener {
+        binding.paused.exit.setOnClickShrinkEffectListener {
             finish()
         }
     }
@@ -133,6 +141,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
+        level = intent.getIntExtra(LEVEL, 1)
         createDataGame()
     }
 
@@ -159,7 +168,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
 
         score = ScoreMatch()
         score!!.score = 0
-        binding.score.text = "${score!!.score}"
+        binding.numberScore.text = "${score!!.score}"
         score!!.scoringTube = 0
         score!!.scoringCoin = true
 
@@ -171,7 +180,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         tube!!.distanceBetweenTubes = mDisplayWidth * 3 / 4
         tube!!.maxTubeOffset = mDisplayHeight - tube!!.minTubeOffset - tube!!.gap
 
-        updateDataLevel(Repository.user!!.level.level)
+        updateDataLevel(Repository.getListLevel()[level-1])
 
         tube!!.tubeX.clear()
         tube!!.topTubeY.clear()
@@ -195,8 +204,8 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         }
     }
 
-    private fun updateDataLevel(level: Int) {
-        when (level) {
+    private fun updateDataLevel(level: LevelGame) {
+        when (level.level) {
             LEVEL_EASY -> {
                 tube!!.gap = GAP_EASY
                 tube!!.distanceBetweenTubes = mDisplayWidth * 3 / 4 + DISTANCE_EASY
@@ -212,9 +221,12 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         }
         tube!!.minTubeOffset = tube!!.gap / 2
         tube!!.maxTubeOffset = mDisplayHeight - tube!!.minTubeOffset - tube!!.gap
+
+        scoreTarget = level.score
     }
 
     private var gameState: Int = STATE_GAME_NOT_STARTED
+    private var level: Int = 1
 
     private var mRect: Rect? = null
     private var mDisplayWidth: Int = 0              //Width screen
@@ -223,8 +235,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
     private var mediaHit: MediaPlayer? = null
     private var mediaPoint: MediaPlayer? = null
     private var mediaWing: MediaPlayer? = null
-    private val volume =
-        (App.getInstance().getVolumeEffect() * App.getInstance().getVolumeMaster()).toFloat() / 100
+    private var mediaPlaying: MediaPlayer? = null
 
     private var random: Random = Random()
 
@@ -240,6 +251,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
     private var mCoin: Bitmap? = null
 
     private var score: ScoreMatch? = null
+    private var scoreTarget: Int = 0
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         runGame()
@@ -257,6 +269,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
             when (gameState) {
                 STATE_GAME_NOT_STARTED -> {
                     startMediaWing()
+                    playMediaPlaying()
 
                     bird!!.velocity = -30
                     gameState = STATE_GAME_PLAYING
@@ -289,8 +302,9 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
                 when (gameState) {
                     STATE_GAME_NOT_STARTED -> {
                         drawBird(canvas)
-
-                        hideScoreBoard()
+                        showTutorial()
+                        hideScoreBoardLost()
+                        hideScoreBoardWin()
                         hideScore()
                         hidePaused()
                     }
@@ -300,6 +314,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
 
                         updateBird(canvas)
 
+                        hideTutorial()
                         showScore()
                         hidePaused()
 
@@ -310,7 +325,11 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
                         if (isBirdHitTube()) {
                             startMediaHit()
 
-                            gameState = STATE_GAME_OVER
+                            gameState = if (score!!.score < scoreTarget){
+                                STATE_GAME_OVER
+                            }else{
+                                STATE_GAME_WIN
+                            }
                         } else {
                             updateScoreTube()
                         }
@@ -320,7 +339,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
                         drawCoin(canvas)
 
                         drawBird(canvas)
-
+                        hideTutorial()
                         showPaused()
                     }
                     STATE_GAME_OVER -> {
@@ -328,9 +347,21 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
                         drawCoin(canvas)
 
                         drawBird(canvas)
-
+                        hideTutorial()
                         hideScore()
-                        showScoreBoard()
+                        showScoreBoardLost()
+                        hideScoreBoardWin()
+                        hidePaused()
+                    }
+                    STATE_GAME_WIN -> {
+                        drawTube(canvas)
+                        drawCoin(canvas)
+
+                        drawBird(canvas)
+                        hideTutorial()
+                        hideScore()
+                        hideScoreBoardLost()
+                        showScoreBoardWin()
                         hidePaused()
                     }
                 }
@@ -366,27 +397,47 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         }
     }
 
-    private suspend fun hideScoreBoard() {
+    private suspend fun hideScoreBoardWin() {
+        withContext(Dispatchers.Main) {
+            binding.scoreboardWin.root.visibility = View.GONE
+        }
+    }
+
+    private suspend fun hideScoreBoardLost() {
         withContext(Dispatchers.Main) {
             binding.scoreboard.root.visibility = View.GONE
         }
     }
 
-    private suspend fun showScoreBoard() {
+    private suspend fun hideTutorial() {
         withContext(Dispatchers.Main) {
-            binding.scoreboard.score.text = "${score!!.score}"
+            binding.tutorial.root.visibility = View.GONE
+        }
+    }
+
+    private suspend fun showTutorial() {
+        withContext(Dispatchers.Main) {
+            binding.tutorial.level.text = "Cấp độ: $level"
+            binding.tutorial.edtScoreFinal.text = "$scoreTarget"
+            binding.tutorial.root.visibility = View.VISIBLE
+        }
+    }
+
+    private suspend fun showScoreBoardWin() {
+        withContext(Dispatchers.Main) {
+            binding.scoreboardWin.edtScoreCurrent.text = "${score!!.score}"
+            binding.scoreboardWin.root.visibility = View.VISIBLE
+
+            binding.scoreboardWin.edtScoreFinal.text = "$scoreTarget"
+        }
+    }
+
+    private suspend fun showScoreBoardLost() {
+        withContext(Dispatchers.Main) {
+            binding.scoreboard.edtScoreCurrent.text = "${score!!.score}"
             binding.scoreboard.root.visibility = View.VISIBLE
 
-            if (Repository.user!!.level.bestCoin < score!!.score) {
-                Repository.user!!.level.bestCoin = score!!.score
-            }
-
-            withContext(Dispatchers.IO){
-                Firebase.database.getReference(Repository.user!!.info!!.uid)
-                    .setValue(Repository.user)
-            }
-
-            binding.scoreboard.best.text = "${Repository.user!!.level.bestCoin}"
+            binding.scoreboard.edtScoreFinal.text = "$scoreTarget"
         }
     }
 
@@ -422,7 +473,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
             startMediaPoint()
 
             withContext(Dispatchers.Main) {
-                binding.score.text = "${score!!.score}"
+                binding.numberScore.text = "${score!!.score}"
             }
         }
     }
@@ -435,7 +486,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
             startMediaPoint()
 
             withContext(Dispatchers.Main) {
-                binding.score.text = "${score!!.score}"
+                binding.numberScore.text = "${score!!.score}"
             }
         }
     }
@@ -493,7 +544,11 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
         } else {
             startMediaHit()
 
-            gameState = STATE_GAME_OVER
+            gameState = if (score!!.score < scoreTarget){
+                STATE_GAME_OVER
+            }else{
+                STATE_GAME_WIN
+            }
         }
         drawBird(canvas)
     }
@@ -560,7 +615,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
     private fun createMediaPoint() {
         mediaPoint?.reset()
         mediaPoint = MediaPlayer.create(this, R.raw.point)
-        mediaPoint?.setVolume(volume / 100, volume / 100)
+        mediaPoint?.setVolume(1f, 1f)
     }
 
     private fun startMediaHit() {
@@ -571,7 +626,7 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
     private fun createMediaHit() {
         mediaHit?.reset()
         mediaHit = MediaPlayer.create(this, R.raw.hit)
-        mediaHit?.setVolume(volume / 100, volume / 100)
+        mediaHit?.setVolume(1f, 1f)
     }
 
     private fun startMediaWing() {
@@ -582,6 +637,25 @@ class SinglePlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.O
     private fun createMediaWing() {
         mediaWing?.reset()
         mediaWing = MediaPlayer.create(this, R.raw.wing)
-        mediaWing?.setVolume(volume / 100, volume / 100)
+        mediaWing?.setVolume(1f, 1f)
+    }
+
+    private fun playMediaPlaying() {
+        if (mediaPlaying == null) {
+            mediaPlaying = MediaPlayer.create(this, R.raw.bg_playing)
+            mediaPlaying!!.isLooping = true
+            mediaPlaying!!.setVolume(1f, 1f)
+            mediaPlaying!!.start()
+        }
+    }
+
+    private fun cancelMediaPlaying() {
+        if (mediaPlaying != null) {
+            mediaPlaying!!.reset()
+        }
+    }
+
+    companion object{
+        const val LEVEL = "LEVEL"
     }
 }

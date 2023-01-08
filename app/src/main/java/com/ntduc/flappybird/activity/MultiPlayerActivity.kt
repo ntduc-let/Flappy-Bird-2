@@ -110,9 +110,9 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
 
 
         binding.surfaceView.setOnTouchListener(this)
-        binding.scoreboard.exit.setOnClickListener {
-            finish()
-        }
+//        binding.scoreboard.exit.setOnClickListener {
+//            finish()
+//        }
         binding.scoreboard.playAgain.setOnClickListener {
             resetData()
         }
@@ -274,8 +274,6 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
     private var mediaHit: MediaPlayer? = null
     private var mediaPoint: MediaPlayer? = null
     private var mediaWing: MediaPlayer? = null
-    private val volume =
-        (App.getInstance().getVolumeEffect() * App.getInstance().getVolumeMaster()).toFloat() / 100
 
     private var random: Random = Random()
 
@@ -426,7 +424,7 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
 
     private suspend fun showScoreBoard() {
         withContext(Dispatchers.Main) {
-            binding.scoreboard.score.text = "${score!!.score}"
+//            binding.scoreboard.score.text = "${score!!.score}"
             binding.scoreboard.root.visibility = View.VISIBLE
 
             if (Repository.user!!.level.bestCoin < score!!.score) {
@@ -438,7 +436,7 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
                     .setValue(Repository.user)
             }
 
-            binding.scoreboard.best.text = "${Repository.user!!.level.bestCoin}"
+//            binding.scoreboard.best.text = "${Repository.user!!.level.bestCoin}"
         }
     }
 
@@ -618,7 +616,6 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
     private fun createMediaPoint() {
         mediaPoint?.reset()
         mediaPoint = MediaPlayer.create(this, R.raw.point)
-        mediaPoint?.setVolume(volume / 100, volume / 100)
     }
 
     private fun startMediaHit() {
@@ -629,7 +626,6 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
     private fun createMediaHit() {
         mediaHit?.reset()
         mediaHit = MediaPlayer.create(this, R.raw.hit)
-        mediaHit?.setVolume(volume / 100, volume / 100)
     }
 
     private fun startMediaWing() {
@@ -640,6 +636,5 @@ class MultiPlayerActivity : AppCompatActivity(), SurfaceHolder.Callback, View.On
     private fun createMediaWing() {
         mediaWing?.reset()
         mediaWing = MediaPlayer.create(this, R.raw.wing)
-        mediaWing?.setVolume(volume / 100, volume / 100)
     }
 }

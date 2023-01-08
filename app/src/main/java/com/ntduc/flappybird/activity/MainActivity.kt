@@ -15,6 +15,7 @@ import com.ntduc.contextutils.inflater
 import com.ntduc.contextutils.restartApp
 import com.ntduc.flappybird.App
 import com.ntduc.flappybird.R
+import com.ntduc.flappybird.activity.SinglePlayerActivity.Companion.LEVEL
 import com.ntduc.flappybird.adapter.ChooseBirdsAdapter
 import com.ntduc.flappybird.databinding.ActivityMainBinding
 import com.ntduc.flappybird.repository.Repository
@@ -51,7 +52,10 @@ class MainActivity : AppCompatActivity() {
         binding.start.setOnClickShrinkEffectListener {
             App.getInstance().startEffect()
             Repository.user!!.bird = Repository.getListBird()[binding.vpChooseBird.currentItem - 1]
-            startActivity(Intent(this, SinglePlayerActivity::class.java))
+
+            val intent = Intent(this, SinglePlayerActivity::class.java)
+            intent.putExtra(LEVEL, Repository.user!!.level.level)
+            startActivity(intent)
         }
 
         binding.compete.setOnClickShrinkEffectListener {

@@ -2,11 +2,14 @@ package com.ntduc.flappybird.repository
 
 import com.ntduc.flappybird.R
 import com.ntduc.flappybird.model.Bird
+import com.ntduc.flappybird.model.LevelGame
 import com.ntduc.flappybird.model.Rival
 import com.ntduc.flappybird.model.User
 
 object Repository {
     private val listBird = arrayListOf<Bird>()
+    private val listLevel = arrayListOf<LevelGame>()
+
     var isHost = false
     var user: User? = null
     var rival: User? = null
@@ -29,11 +32,30 @@ object Repository {
         return listBird
     }
 
+    fun getListLevel(): ArrayList<LevelGame> {
+        if (listLevel.isEmpty()){
+            listLevel.add(LevelGame(id = 1, level = LEVEL_EASY, score = 10, isPassed = false))
+            listLevel.add(LevelGame(id = 2, level = LEVEL_EASY, score = 20, isPassed = false))
+            listLevel.add(LevelGame(id = 3, level = LEVEL_EASY, score = 30, isPassed = false))
+            listLevel.add(LevelGame(id = 4, level = LEVEL_MEDIUM, score = 10, isPassed = false))
+            listLevel.add(LevelGame(id = 5, level = LEVEL_MEDIUM, score = 20, isPassed = false))
+            listLevel.add(LevelGame(id = 6, level = LEVEL_MEDIUM, score = 30, isPassed = false))
+            listLevel.add(LevelGame(id = 7, level = LEVEL_HARD, score = 10, isPassed = false))
+            listLevel.add(LevelGame(id = 8, level = LEVEL_HARD, score = 20, isPassed = false))
+            listLevel.add(LevelGame(id = 9, level = LEVEL_HARD, score = 30, isPassed = false))
+            listLevel.add(LevelGame(id = 10, level = LEVEL_VERY_HARD, score = 10, isPassed = false))
+            listLevel.add(LevelGame(id = 11, level = LEVEL_VERY_HARD, score = 30, isPassed = false))
+        }
+
+        return listLevel
+    }
+
     const val STATE_GAME_PREPARE = 0
     const val STATE_GAME_NOT_STARTED = 1
     const val STATE_GAME_PLAYING = 2
     const val STATE_GAME_PAUSED = 3
     const val STATE_GAME_OVER = 4
+    const val STATE_GAME_WIN = 5
 
     const val LEVEL_EASY = 0
     const val LEVEL_MEDIUM = 1

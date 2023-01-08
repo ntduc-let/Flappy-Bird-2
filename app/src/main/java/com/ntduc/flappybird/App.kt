@@ -8,13 +8,13 @@ import android.os.Bundle
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.ntduc.flappybird.activity.SinglePlayerActivity
 import com.ntduc.sharedpreferenceutils.get
 import com.ntduc.sharedpreferenceutils.put
 
 class App : Application(), Application.ActivityLifecycleCallbacks {
     private lateinit var mediaPlayerMusic: MediaPlayer
     private lateinit var mediaPlayerEffect: MediaPlayer
-    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate() {
         super.onCreate()
@@ -27,55 +27,17 @@ class App : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     private fun initData() {
-        sharedPreferences = getSharedPreferences("SOUND", MODE_PRIVATE)
-
         mediaPlayerMusic = MediaPlayer.create(this, R.raw.background)
         mediaPlayerMusic.isLooping = true
         mediaPlayerMusic.start()
 
-        mediaPlayerEffect = MediaPlayer.create(this, R.raw.swoosh)
-
-        setVolumeMaster(getVolumeMaster())
+        mediaPlayerEffect = MediaPlayer.create(this, R.raw.wing)
     }
 
-    fun startEffect(){
+    fun startEffect() {
         mediaPlayerEffect.reset()
-        mediaPlayerEffect = MediaPlayer.create(this, R.raw.swoosh)
-        setVolumeMaster(getVolumeMaster())
+        mediaPlayerEffect = MediaPlayer.create(this, R.raw.wing)
         mediaPlayerEffect.start()
-    }
-
-    fun setVolumeMaster(volume: Int) {
-        val resultMusic = (volume * getVolumeMusic()).toFloat() / 100
-        val resultEffect = (volume * getVolumeEffect()).toFloat() / 100
-
-        mediaPlayerMusic.setVolume(resultMusic / 100, resultMusic / 100)
-        mediaPlayerEffect.setVolume(resultEffect / 100, resultEffect / 100)
-        sharedPreferences.put(VOLUME_MASTER, volume)
-    }
-
-    fun getVolumeMaster(): Int {
-        return sharedPreferences.get(VOLUME_MASTER, 100)
-    }
-
-    fun setVolumeMusic(volume: Int) {
-        val result = (volume * getVolumeMaster()).toFloat() / 100
-        mediaPlayerMusic.setVolume(result / 100, result / 100)
-        sharedPreferences.put(VOLUME_MUSIC, volume)
-    }
-
-    fun getVolumeMusic(): Int {
-        return sharedPreferences.get(VOLUME_MUSIC, 100)
-    }
-
-    fun setVolumeEffect(volume: Int) {
-        val result = (volume * getVolumeMaster()).toFloat() / 100
-        mediaPlayerEffect.setVolume(result / 100, result / 100)
-        sharedPreferences.put(VOLUME_EFFECT, volume)
-    }
-
-    fun getVolumeEffect(): Int {
-        return sharedPreferences.get(VOLUME_EFFECT, 100)
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
@@ -83,6 +45,7 @@ class App : Application(), Application.ActivityLifecycleCallbacks {
     override fun onActivityStarted(activity: Activity) {}
 
     override fun onActivityResumed(activity: Activity) {
+        if (activity is SinglePlayerActivity) return
         mediaPlayerMusic.start()
     }
 
