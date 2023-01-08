@@ -43,7 +43,7 @@
         android:layout_marginStart="64dp"
         android:text="Mục tiêu:"
         android:textColor="@color/black"
-        android:textSize="24dp"
+        android:textSize="32dp"
         app:layout_constraintBottom_toTopOf="@+id/txt_scoreCurrent"
         app:layout_constraintEnd_toStartOf="@+id/edt_scoreFinal"
         app:layout_constraintHorizontal_bias="0.5"
@@ -54,7 +54,7 @@
 
     <TextView
         android:id="@+id/edt_scoreFinal"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="end"
         android:textColor="@color/black"
@@ -84,7 +84,7 @@
         android:layout_marginStart="64dp"
         android:text="Điểm của bạn"
         android:textColor="@color/black"
-        android:textSize="24dp"
+        android:textSize="32dp"
         app:layout_constraintBottom_toBottomOf="@id/bg_scoreboard"
         app:layout_constraintEnd_toStartOf="@+id/edt_scoreCurrent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -93,7 +93,7 @@
 
     <TextView
         android:id="@+id/edt_scoreCurrent"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="end"
         android:textColor="@color/black"
@@ -120,11 +120,12 @@
         android:id="@+id/txt2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="end"
+        android:gravity="center"
         android:text="Rất tuyệt nhưng chưa hết đâu..."
         android:textColor="@color/black"
         android:textSize="18dp"
         app:layout_constraintEnd_toEndOf="@id/img3"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@id/txt_scoreCurrent"
         app:layout_constraintTop_toBottomOf="@id/img3" />
 
